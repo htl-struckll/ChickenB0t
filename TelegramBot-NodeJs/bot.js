@@ -1,9 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 const token = '594162168:AAE0wcAbFLrTr85b-j8mHV6NAAkcLu7z_18';
 const bot = new TelegramBot(token, { polling: true });
+const MongoClient = require('mongodb');
 
 var memesSend = [];
-var database = require('mongoDb.js');
 var chatId;
 
 bot.onText(/\/send (.+)/, (msg, match) => {
