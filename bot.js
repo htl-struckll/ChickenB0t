@@ -114,7 +114,7 @@ function addRepostToReposter(repostedMeme) {
             found = true;
 
             var toUpdate = { $set: { "amount": reposters[idx].amount } };
-            var query = { "userid": reposters[idx].userId };
+            var query = { "userId": reposters[idx].userId };
             updateValueInDb(query, toUpdate, collReposters);
         }
 
@@ -122,7 +122,7 @@ function addRepostToReposter(repostedMeme) {
     });
 
     if (!found) {
-        reposter = { "userId": repostedMeme.senderName, "username": repostedMeme.senderUsername, "amount": 1 };
+        reposter = { "userId": repostedMeme.userId, "username": repostedMeme.username, "amount": 1 };
         reposters.push(reposter);
         addValueToDb(reposter, collReposters);
     }
