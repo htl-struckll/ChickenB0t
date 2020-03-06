@@ -76,7 +76,7 @@ bot.on('text', (msg) => {
 
         memeId = getMemeId(msg.text);
 
-        var newMeme = { "senderChat": chatId, "senderUsername": msg.from.username, "senderName": msg.from.first_name != undefined ? msg.from.first_name : "" + " " + msg.from.last_name != undefined ? msg.from.last_name : "", "sendOnDate": getCurrentDate(), "sendOnTime": getCurrentTime(), "meme": memeId };
+        var newMeme = { "chatId": chatId, "userId": msg.from.id, "username": msg.from.first_name != undefined ? msg.from.first_name : "" + " " + msg.from.last_name != undefined ? msg.from.last_name : "", "sendOnDate": getCurrentDate(), "sendOnTime": getCurrentTime(), "meme": memeId };
 
         if (memesSend.some(oldMeme => oldMeme.meme === memeId && oldMeme.chatId === newMeme.chatId)) {
             sendRepostMessage(newMeme);
@@ -109,12 +109,12 @@ function addRepostToReposter(repostedMeme) {
 
     reposters.forEach(reposter => {
         var idx = 0;
-        if (reposter.senderName === repostedMeme.senderName) {
+        if (reposter.userId === repostedMeme.userId) {
             reposters[idx].amount = reposters[idx].amount + 1;
             found = true;
 
             var toUpdate = { $set: { "amount": reposters[idx].amount } };
-            var query = { "senderName": reposters[idx].senderName };
+            var query = { "userid": reposters[idx].userId };
             updateValueInDb(query, toUpdate, collReposters);
         }
 
@@ -122,7 +122,7 @@ function addRepostToReposter(repostedMeme) {
     });
 
     if (!found) {
-        reposter = { "senderName": repostedMeme.senderName, "username": repostedMeme.senderUsername, "amount": 1 };
+        reposter = { "userId": repostedMeme.senderName, "username": repostedMeme.senderUsername, "amount": 1 };
         reposters.push(reposter);
         addValueToDb(reposter, collReposters);
     }
@@ -145,7 +145,7 @@ async function sendRepostMessage(repost) {
     });
 
     bot.sendMessage(chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨\nBuckle up Cowboy. This looks like a repost.\nThis meme was already posted by "
-        + originalMeme[0].senderName + " on the " + originalMeme[0].sendOnDate + " at " + originalMeme[0].sendOnTime + "\n🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨");
+        + originalMeme[0].username + " on the " + originalMeme[0].sendOnDate + " at " + originalMeme[0].sendOnTime + "\n🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨");
 }
 
 function sendPicture(image_src) {
