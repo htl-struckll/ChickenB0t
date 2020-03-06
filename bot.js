@@ -61,7 +61,7 @@ bot.onText(/\/showmestats/, (msg) => {
     var cnt = 1;
 
     reposters.forEach(obj => {
-        sendVal += cnt + ". " + obj.name + ", " + obj.amount + "\n";
+        sendVal += cnt + ". " + obj.username + ", " + obj.amount + "\n";
         cnt++;
     });
 
@@ -72,7 +72,7 @@ bot.on('text', (msg) => {
     chatId = msg.chat.id;
 
 
-    if (msg.text.toLowerCase().includes("reddit.com") || msg.text.toLowerCase().includes("9gag.com") || msg.text.toLowerCase().includes("tiktok.com")) {
+    if (msg.text.toLowerCase().includes("reddit.com/r/") || msg.text.toLowerCase().includes("9gag.com/") || msg.text.toLowerCase().includes("tiktok.com/")) {
 
         memeId = getMemeId(msg.text);
 
