@@ -60,8 +60,8 @@ bot.onText(/\/showmestats/, (msg) => {
     var sendVal = "";
     var cnt = 1;
 
-    reposters.forEach(obj => {
-        sendVal += cnt + ". " + obj.username + ", " + obj.amount + "\n";
+    reposters.forEach(reposter => {
+        sendVal += cnt + ". " + reposter.username + ", " + reposter.amount + "\n";
         cnt++;
     });
 
