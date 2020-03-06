@@ -71,11 +71,14 @@ bot.onText(/\/showmestats/, (msg) => {
 bot.on('text', (msg) => {
     chatId = msg.chat.id;
 
-    if (msg.text.toLowerCase().includes("reddit") || msg.text.toLowerCase().includes("9gag") || msg.text.toLowerCase().includes("tiktok")) {
 
-        var newMeme = { "senderChat": chatId, "sender": msg.from.first_name != undefined ? msg.from.first_name : "" + " " + msg.from.last_name != undefined ? msg.from.last_name : "", "sendOnDate": getCurrentDate(), "sendOnTime": getCurrentTime(), "meme": msg.text };
+    if (msg.text.toLowerCase().includes("reddit.com") || msg.text.toLowerCase().includes("9gag.com") || msg.text.toLowerCase().includes("tiktok.com")) {
 
-        if (memesSend.some(oldMeme => oldMeme.meme === msg.text && oldMeme.chatId === newMeme.chatId)) {
+        memeId = getMemeId(msg.text);
+
+        var newMeme = { "senderChat": chatId, "senderUsername": msg.from.username, "senderName": msg.from.first_name != undefined ? msg.from.first_name : "" + " " + msg.from.last_name != undefined ? msg.from.last_name : "", "sendOnDate": getCurrentDate(), "sendOnTime": getCurrentTime(), "meme": memeId };
+
+        if (memesSend.some(oldMeme => oldMeme.meme === memeId && oldMeme.chatId === newMeme.chatId)) {
             sendRepostMessage(newMeme);
             addRepostToReposter(newMeme);
         } else {
@@ -85,6 +88,18 @@ bot.on('text', (msg) => {
     }
 });
 
+function getMemeId(memeUrl) {
+    var memeId;
+    if (memeUrl.includes("reddit.com"))
+        memeId = memeUrl.split('/')[6];
+    else if (memeUrl.includes("9gag.com"))
+        memeId = memeUrl.split('/')[4];
+    else
+        memeId = memeUrl;
+
+    return memeId;
+}
+
 function addValueToDb(meme, collection) {
     database.collection(collection).insertOne(meme);
 }
@@ -92,14 +107,14 @@ function addValueToDb(meme, collection) {
 function addRepostToReposter(repostedMeme) {
     var found = false;
 
-    reposters.forEach(obj => {
+    reposters.forEach(reposter => {
         var idx = 0;
-        if (obj.name === repostedMeme.sender) {
+        if (reposter.senderName === repostedMeme.senderName) {
             reposters[idx].amount = reposters[idx].amount + 1;
             found = true;
 
             var toUpdate = { $set: { "amount": reposters[idx].amount } };
-            var query = { "name": reposters[idx].name };
+            var query = { "senderName": reposters[idx].senderName };
             updateValueInDb(query, toUpdate, collReposters);
         }
 
@@ -107,15 +122,13 @@ function addRepostToReposter(repostedMeme) {
     });
 
     if (!found) {
-        reposter = { "name": repostedMeme.sender, "amount": 1 };
+        reposter = { "senderName": repostedMeme.senderName, "username": repostedMeme.senderUsername, "amount": 1 };
         reposters.push(reposter);
         addValueToDb(reposter, collReposters);
     }
-
 }
 
 async function updateValueInDb(serach, toUpdate, collection) {
-    console.log(serach);
     try {
         await database.collection(collection).updateOne(serach, toUpdate, function (err, res) {
             if (err) throw err;
@@ -127,17 +140,12 @@ async function updateValueInDb(serach, toUpdate, collection) {
 }
 
 async function sendRepostMessage(repost) {
-    var originalMeme = memesSend.filter(obj => {
-        return obj.meme === repost.meme;
+    var originalMeme = memesSend.filter(meme => {
+        return meme.meme === repost.meme;
     });
 
-    bot.sendMessage(chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨");
-    await sleep(100);
-    bot.sendMessage(chatId, "Buckle up Cowboy. This looks like a repost.");
-    await sleep(100);
-    bot.sendMessage(chatId, "This meme was already posted by " + originalMeme[0].sender + " on the " + originalMeme[0].sendOnDate + " at " + originalMeme[0].sendOnTime);
-    await sleep(100);
-    bot.sendMessage(chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨");
+    bot.sendMessage(chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨\nBuckle up Cowboy. This looks like a repost.\nThis meme was already posted by "
+        + originalMeme[0].senderName + " on the " + originalMeme[0].sendOnDate + " at " + originalMeme[0].sendOnTime + "\n🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨");
 }
 
 function sendPicture(image_src) {
