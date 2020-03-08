@@ -68,40 +68,53 @@ bot.onText(/\/showmestats/, (msg) => {
     bot.sendMessage(chatId, sendVal != "" ? sendVal : "No reposts have been done yet..... Very suspicious");
 });
 
-bot.on('text', (msg) => {
-    chatId = msg.chat.id;
+bot.onText(/.*(reddit\.com\/r\/\w*\/comments\/\w*).*/, (msg,match) => {
+    repostDetection(msg, match[0]);
+})
 
+bot.onText(/.*(9gag\.com\/gag\/\w*).*/, (msg,match) => {
+    repostDetection(msg, match[0]);
+})
 
-    if (msg.text.toLowerCase().includes("reddit.com/r/") || msg.text.toLowerCase().includes("9gag.com/") || msg.text.toLowerCase().includes("tiktok.com/")) {
+bot.onText(/.*(vm.tiktok\.com\/\w*).*/, (msg,match) => {
+    repostDetection(msg, match[0]);
+})
 
-        memeId = getMemeId(msg.text);
+bot.on("polling_error", (err) => {console.log('error: '); console.log(err);});
 
-        var newMeme = { "chatId": chatId, "userId": msg.from.id, "username": msg.from.first_name != undefined ? msg.from.first_name : "" + " " + msg.from.last_name != undefined ? msg.from.last_name : "", "sendOnDate": getCurrentDate(), "sendOnTime": getCurrentTime(), "meme": memeId };
+function repostDetection(msg, meme) {
+    var newMeme = { 
+        "chatId": msg.chat.id,
+        "messageId": msg.message_id,
+        "userId": msg.from.id,
+        //"username": msg.from.first_name != undefined ? msg.from.first_name : "" + " " + msg.from.last_name != undefined ? msg.from.last_name : "",
+        "date": msg.date * 1000,
+        "meme": meme
+    };
 
-        if (memesSend.some(oldMeme => oldMeme.meme === memeId && oldMeme.chatId === newMeme.chatId)) {
-            sendRepostMessage(newMeme);
-            addRepostToReposter(newMeme);
-        } else {
-            memesSend.push(newMeme);
-            addValueToDb(newMeme, collMemesSend);
-        }
+    if (memesSend.some(oldMeme => oldMeme.meme === newMeme.meme && oldMeme.chatId === newMeme.chatId)) {
+        sendRepostMessage(newMeme);
+        addRepostToReposter(newMeme);
+    } else {
+        memesSend.push(newMeme);
+        addValueToDb(newMeme, collMemesSend);
     }
-});
-
-function getMemeId(memeUrl) {
-    var memeId;
-    if (memeUrl.includes("reddit.com"))
-        memeId = memeUrl.split('/')[6];
-    else if (memeUrl.includes("9gag.com"))
-        memeId = memeUrl.split('/')[4];
-    else
-        memeId = memeUrl;
-
-    return memeId;
 }
 
 function addValueToDb(meme, collection) {
     database.collection(collection).insertOne(meme);
+}
+
+async function sendRepostMessage(repost) {
+    var originalMeme = memesSend.filter(meme => {
+        return meme.meme === repost.meme;
+    });
+    date = new Date(originalMeme[0].date);
+    bot.getChatMember(originalMeme[0].chatId,originalMeme[0].userId).then(function(user) {
+        bot.sendMessage(repost.chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨\nBuckle up Cowboy. This looks like a repost.\nThis meme was already posted by @"
+            + user.user.username + " on " + date.toDateString() + " at " + date.toLocaleTimeString('en-US') + "\n🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨",{'reply_to_message_id':repost.messageId});
+    });
+    
 }
 
 function addRepostToReposter(repostedMeme) {
@@ -137,15 +150,6 @@ async function updateValueInDb(serach, toUpdate, collection) {
     } catch (e) {
         console.log(e);
     }
-}
-
-async function sendRepostMessage(repost) {
-    var originalMeme = memesSend.filter(meme => {
-        return meme.meme === repost.meme;
-    });
-
-    bot.sendMessage(chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨\nBuckle up Cowboy. This looks like a repost.\nThis meme was already posted by "
-        + originalMeme[0].username + " on the " + originalMeme[0].sendOnDate + " at " + originalMeme[0].sendOnTime + "\n🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨");
 }
 
 function sendPicture(image_src) {
