@@ -1,31 +1,26 @@
+var config = require("./config.json");
+
+//Telegram
 const TelegramBot = require('node-telegram-bot-api');
-const token = '594162168:AAE0wcAbFLrTr85b-j8mHV6NAAkcLu7z_18';
+const token = config.TelegramBot.token;
 const bot = new TelegramBot(token, { polling: true });
+
+//Mongo
 const MongoClient = require('mongodb').MongoClient;
-const url = "mongodb+srv://MasterChickenHD:lol1@cluster0-nj6wv.mongodb.net/test?retryWrites=true&w=majority";
-const collMemesSend = "memesSend";
-const collReposters = "reposters";
+const assert = require('assert');
 
+const url = config.MongoDB.connectionURL;
+
+const dbclient = new MongoClient(url);
 var database;
-var memesSend = [];
-var reposters = [];
-var chatId;
 
-MongoClient.connect(url, function (err, db) {
+dbclient.connect(function (err,db) {
     if (err) throw err;
-    database = db.db("MemeBot");
-    loadContent();
+    database = db.db(config.MongoDB.dbName)
+    console.log("database connected!");
+})
 
-    console.log("connected to db and loaded content");
-});
-
-async function loadContent() {
-    memesSend = await database.collection(collMemesSend).find({}).toArray();
-    reposters = await database.collection(collReposters).find({}).toArray();
-}
-
-
-bot.onText(/\/send (.+)/, (msg, match) => {
+bot.onText(/^\/send (.+)/, (msg, match) => {
     chatId = msg.chat.id;
     var imageResource = getRandomPicture(match[1]);
     sendPicture(imageResource);
@@ -33,7 +28,7 @@ bot.onText(/\/send (.+)/, (msg, match) => {
     console.log("Got a picture request: " + match[1]);
 });
 
-bot.onText(/\/send/, (msg) => {
+bot.onText(/^\/send/, (msg) => {
     chatId = msg.chat.id;
     var imageResource = getRandomPicture(match[1]);
     sendPicture(imageResource);
@@ -41,7 +36,7 @@ bot.onText(/\/send/, (msg) => {
     console.log("Got a picture request: " + match[1]);
 });
 
-bot.onText(/\/help/, (msg) => {
+bot.onText(/^\/help/, (msg) => {
     chatId = msg.chat.id;
 
     bot.sendMessage(chatId, "Listen here shitheads:\n" +
@@ -50,125 +45,63 @@ bot.onText(/\/help/, (msg) => {
         "/showmestats -  I want to see my wasted posts in here couse i am a waste of sperm");
 });
 
-bot.onText(/\/showmestats/, (msg) => {
-    chatId = msg.chat.id;
+bot.onText(/^\/showmestats/, showmestats);
 
-    reposters.sort((a, b) => {
-        return (a.amount - b.amount) * -1;
-    });
-
+async function showmestats(msg){
     var sendVal = "";
-    var cnt = 1;
+    var reposters = await database.collection(config.MongoDB.collReposters).find({}).sort({amount: -1}).toArray()
+    for (i in reposters) {
+        reposter = reposters[i];
+        await bot.getChatMember(msg.chat.id, reposter.userId).then(user => {
+            sendVal += "@" + user.user.username + ": " + reposter.amount + "\n";
+        });
+    };
+    bot.sendMessage(msg.chat.id, sendVal != "" ? sendVal : "No reposts have been done yet..... Very suspicious");
+}
 
-    reposters.forEach(reposter => {
-        sendVal += cnt + ". " + reposter.username + ", " + reposter.amount + "\n";
-        cnt++;
-    });
-
-    bot.sendMessage(chatId, sendVal != "" ? sendVal : "No reposts have been done yet..... Very suspicious");
-});
-
-bot.onText(/.*(reddit\.com\/r\/\w*\/comments\/\w*).*/, (msg,match) => {
+bot.onText(/reddit\.com\/r\/\w+\/comments\/\w+(?:\/\w+\/\w+)?/, (msg,match) => {
     repostDetection(msg, match[0]);
 })
 
-bot.onText(/.*(9gag\.com\/gag\/\w*).*/, (msg,match) => {
+bot.onText(/9gag\.com\/gag\/\w+/, (msg,match) => {
     repostDetection(msg, match[0]);
 })
 
-bot.onText(/.*(vm.tiktok\.com\/\w*).*/, (msg,match) => {
+bot.onText(/vm.tiktok\.com\/\w+/, (msg,match) => {
     repostDetection(msg, match[0]);
 })
 
 bot.on("polling_error", (err) => {console.log('error: '); console.log(err);});
 
-function repostDetection(msg, meme) {
+async function repostDetection(msg, meme) {
     var newMeme = { 
-        "chatId": msg.chat.id,
-        "messageId": msg.message_id,
-        "userId": msg.from.id,
-        //"username": msg.from.first_name != undefined ? msg.from.first_name : "" + " " + msg.from.last_name != undefined ? msg.from.last_name : "",
-        "date": msg.date * 1000,
-        "meme": meme
+        chatId: msg.chat.id,
+        messageId: msg.message_id,
+        userId: msg.from.id,
+        date: msg.date * 1000,
+        meme: meme
     };
-
-    if (memesSend.some(oldMeme => oldMeme.meme === newMeme.meme && oldMeme.chatId === newMeme.chatId)) {
+    console.log(newMeme);
+    if (await database.collection(config.MongoDB.collMemesSend).findOne({meme:newMeme.meme, chatId:newMeme.chatId},{sort:[["date",1]]})) {
         sendRepostMessage(newMeme);
-        addRepostToReposter(newMeme);
-    } else {
-        memesSend.push(newMeme);
-        addValueToDb(newMeme, collMemesSend);
+        rpost = await database.collection(config.MongoDB.collReposters).findOneAndUpdate({ userId: newMeme.userId },{$inc : {amount : 1}});
+        if (!rpost.value) {
+            database.collection(config.MongoDB.collReposters).insertOne({ userId: newMeme.userId, chatId: newMeme.chatId, amount: 1 });
+        }
     }
-}
-
-function addValueToDb(meme, collection) {
-    database.collection(collection).insertOne(meme);
+    else
+    {
+        database.collection(config.MongoDB.collMemesSend).insertOne(newMeme);
+    }
 }
 
 async function sendRepostMessage(repost) {
-    var originalMeme = memesSend.filter(meme => {
-        return meme.meme === repost.meme;
-    });
-    date = new Date(originalMeme[0].date);
-    bot.getChatMember(originalMeme[0].chatId,originalMeme[0].userId).then(function(user) {
+    var originalMeme = await database.collection(config.MongoDB.collMemesSend).findOne({meme:repost.meme, chatId:repost.chatId},{sort:[["date",1]]});
+    date = new Date(originalMeme.date);
+    bot.getChatMember(originalMeme.chatId,originalMeme.userId).then(function(user) {
         bot.sendMessage(repost.chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨\nBuckle up Cowboy. This looks like a repost.\nThis meme was already posted by @"
             + user.user.username + " on " + date.toDateString() + " at " + date.toLocaleTimeString('en-US') + "\n🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨",{'reply_to_message_id':repost.messageId});
     });
-    
-}
-
-function addRepostToReposter(repostedMeme) {
-    var found = false;
-
-    reposters.forEach(reposter => {
-        var idx = 0;
-        if (reposter.userId === repostedMeme.userId) {
-            reposters[idx].amount = reposters[idx].amount + 1;
-            found = true;
-
-            var toUpdate = { $set: { "amount": reposters[idx].amount } };
-            var query = { "userId": reposters[idx].userId };
-            updateValueInDb(query, toUpdate, collReposters);
-        }
-
-        idx++;
-    });
-
-    if (!found) {
-        reposter = { "userId": repostedMeme.userId, "username": repostedMeme.username, "amount": 1 };
-        reposters.push(reposter);
-        addValueToDb(reposter, collReposters);
-    }
-}
-
-async function updateValueInDb(serach, toUpdate, collection) {
-    try {
-        await database.collection(collection).updateOne(serach, toUpdate, function (err, res) {
-            if (err) throw err;
-        });
-
-    } catch (e) {
-        console.log(e);
-    }
-}
-
-function sendPicture(image_src) {
-    bot.sendPicture(chatId, image_src);
-}
-
-function getCurrentDate() {
-    var now = new Date();
-    return String(now.getDate()).padStart(2, '0') + "."
-        + String(now.getMonth() + 1).padStart(2, '0') + "." + now.getFullYear();
-}
-
-function getCurrentTime() {
-    var now = new Date();
-    return now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function getRandomPicture(keyword) {
