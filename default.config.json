@@ -6,6 +6,12 @@
         "connectionURL":mongodb+srv://MasterChickenHD:lol1@cluster0-nj6wv.mongodb.net/test?retryWrites=true&w=majority",
         "dbName":"MemeBot",
         "collReposters": "reposters",
-        "collMemesSend": "memesSend"
+        "collMemesSend": "memesSend",
+		"collRegisteredChats" : "registeredChats"
+    } "Openweathermap":{
+        "token" : "123456789:OpenWeatherMapToken",
+        "countryId" : "6969",
+        "state" : "YourState",
+        "city" : "YourCity"
     }
 }
