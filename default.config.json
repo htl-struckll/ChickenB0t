@@ -6,6 +6,12 @@
         "connectionURL":"mongodb://127.0.0.1:27017/?retryWrites=true&w=majority",
         "dbName":"MemeBot",
         "collReposters": "reposters",
-        "collMemesSend": "memesSend"
+        "collMemesSend": "memesSend",
+		"collRegisteredChats" : "registeredChats"
+    } "Openweathermap":{
+        "token" : "123456789:OpenWeatherMapToken",
+        "countryId" : "6969",
+        "state" : "YourState",
+        "city" : "YourCity"
     }
 }
