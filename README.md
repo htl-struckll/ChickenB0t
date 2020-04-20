@@ -6,3 +6,4 @@ The **default.config.json** can be used as template and lookup for all available
 Save your configuration in the Bot-Folder with the name **config.json**.
 
 ## Installation
+run run.bat
