@@ -3,7 +3,7 @@
         "token": "123456789:TelegramBotToken"
     },
     "MongoDB":{
-        "connectionURL":"mongodb://127.0.0.1:27017/?retryWrites=true&w=majority",
+        "connectionURL":mongodb+srv://MasterChickenHD:lol1@cluster0-nj6wv.mongodb.net/test?retryWrites=true&w=majority",
         "dbName":"MemeBot",
         "collReposters": "reposters",
         "collMemesSend": "memesSend",
