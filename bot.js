@@ -1,5 +1,5 @@
 var config = require("./config.json");
-var randomSites = ["http://heeeeeeeey.com/","http://tinytuba.com/","http://corndog.io/","https://alwaysjudgeabookbyitscover.com","http://thatsthefinger.com/","http://cant-not-tweet-this.com/","http://weirdorconfusing.com/","http://eelslap.com/","http://www.staggeringbeauty.com/","http://burymewithmymoney.com/","http://endless.horse/","http://www.trypap.com/","http://www.republiquedesmangues.fr/","http://www.movenowthinklater.com/","http://www.partridgegetslucky.com/","http://www.rrrgggbbb.com/","http://beesbeesbees.com/","http://www.koalastothemax.com/","http://www.everydayim.com/","http://randomcolour.com/","http://cat-bounce.com/","http://chrismckenzie.com/","http://hasthelargehadroncolliderdestroyedtheworldyet.com/","http://ninjaflex.com/","http://ihasabucket.com/","http://corndogoncorndog.com/","http://www.hackertyper.com/","https://pointerpointer.com","http://imaninja.com/","http://www.ismycomputeron.com/","http://www.nullingthevoid.com/","http://www.muchbetterthanthis.com/","http://www.yesnoif.com/","http://potatoortomato.com/","http://iamawesome.com/","http://www.pleaselike.com/","http://crouton.net/","http://corgiorgy.com/","http://www.wutdafuk.com/","http://unicodesnowmanforyou.com/","http://www.crossdivisions.com/","http://tencents.info/","http://www.patience-is-a-virtue.org/","http://pixelsfighting.com/","http://isitwhite.com/","http://onemillionlols.com/","http://www.omfgdogs.com/","http://oct82.com/","http://chihuahuaspin.com/","http://www.blankwindows.com/","http://dogs.are.the.most.moe/","http://tunnelsnakes.com/","http://www.trashloop.com/","http://www.ascii-middle-finger.com/","http://spaceis.cool/","http://www.donothingfor2minutes.com/","http://buildshruggie.com/","http://buzzybuzz.biz/","http://yeahlemons.com/","http://burnie.com/","http://wowenwilsonquiz.com","https://thepigeon.org/","http://notdayoftheweek.com/","http://www.amialright.com/","http://nooooooooooooooo.com/","https://greatbignothing.com/"];
+var randomSites = ["http://heeeeeeeey.com/", "http://tinytuba.com/", "http://corndog.io/", "https://alwaysjudgeabookbyitscover.com", "http://thatsthefinger.com/", "http://cant-not-tweet-this.com/", "http://weirdorconfusing.com/", "http://eelslap.com/", "http://www.staggeringbeauty.com/", "http://burymewithmymoney.com/", "http://endless.horse/", "http://www.trypap.com/", "http://www.republiquedesmangues.fr/", "http://www.movenowthinklater.com/", "http://www.partridgegetslucky.com/", "http://www.rrrgggbbb.com/", "http://beesbeesbees.com/", "http://www.koalastothemax.com/", "http://www.everydayim.com/", "http://randomcolour.com/", "http://cat-bounce.com/", "http://chrismckenzie.com/", "http://hasthelargehadroncolliderdestroyedtheworldyet.com/", "http://ninjaflex.com/", "http://ihasabucket.com/", "http://corndogoncorndog.com/", "http://www.hackertyper.com/", "https://pointerpointer.com", "http://imaninja.com/", "http://www.ismycomputeron.com/", "http://www.nullingthevoid.com/", "http://www.muchbetterthanthis.com/", "http://www.yesnoif.com/", "http://potatoortomato.com/", "http://iamawesome.com/", "http://www.pleaselike.com/", "http://crouton.net/", "http://corgiorgy.com/", "http://www.wutdafuk.com/", "http://unicodesnowmanforyou.com/", "http://www.crossdivisions.com/", "http://tencents.info/", "http://www.patience-is-a-virtue.org/", "http://pixelsfighting.com/", "http://isitwhite.com/", "http://onemillionlols.com/", "http://www.omfgdogs.com/", "http://oct82.com/", "http://chihuahuaspin.com/", "http://www.blankwindows.com/", "http://dogs.are.the.most.moe/", "http://tunnelsnakes.com/", "http://www.trashloop.com/", "http://www.ascii-middle-finger.com/", "http://spaceis.cool/", "http://www.donothingfor2minutes.com/", "http://buildshruggie.com/", "http://buzzybuzz.biz/", "http://yeahlemons.com/", "http://burnie.com/", "http://wowenwilsonquiz.com", "https://thepigeon.org/", "http://notdayoftheweek.com/", "http://www.amialright.com/", "http://nooooooooooooooo.com/", "https://greatbignothing.com/"];
 
 //Weather
 const fetch = require("node-fetch");
@@ -43,10 +43,14 @@ function sendMorningWeather() {
 
 function getTimeAtHour() {
     var t = new Date();
+
+    if (t.getHours() > 6)
+        t.setDate(t.getDate() + 1)
+
     t.setHours(6);
     t.setMinutes(0);
     t.setSeconds(0);
-    t.setMilliseconds(0);
+
     return t;
 }
 
@@ -54,6 +58,8 @@ function registerNewTimeOut() {
     var triggerTime = getTimeAtHour();
     var now = new Date().getTime()
     var offsetMillis;
+
+
     if (triggerTime > now)
         offsetMillis = triggerTime - now;
     else
@@ -65,12 +71,12 @@ function registerNewTimeOut() {
 
 registerNewTimeOut();
 
-bot.onText(/^\/register/, async function(msg) {
+bot.onText(/^\/register/, async function (msg) {
     chatId = msg.chat.id;
 
     var found = await database.collection(config.MongoDB.collRegisteredChats).findOne({ "chatId": chatId });
 
-    if (found==null) {
+    if (found == null) {
         database.collection(config.MongoDB.collRegisteredChats).insertOne({ "chatId": chatId });
 
         bot.sendMessage(chatId, "Registerd dummy");
@@ -81,7 +87,7 @@ bot.onText(/^\/register/, async function(msg) {
 bot.onText(/^\/randomwebsite/, (msg) => {
     chatId = msg.chat.id;
 
-    bot.sendMessage(chatId,randomSites[Math.round(Math.random() * randomSites.length)]);
+    bot.sendMessage(chatId, randomSites[Math.round(Math.random() * randomSites.length)]);
 });
 
 bot.onText(/^\/bestwebsite/, (msg) => {
@@ -111,9 +117,9 @@ bot.onText(/^\/help/, (msg) => {
         "First of all. I monitor every movement you make. And you can belive me one thing: \nI - WILL - FIND - YOUR - REPOST\n\n" +
         "/weather - You alredy get your daily weather update you sick fuck.\n" +
         "/register - Register my slave ass to send you a daily weather update,\n" +
-        "/showmestats -  I want to see my wasted posts in here couse i am a waste of sperm\n"+
-        "/randomwebsite - I am hella bored Owo\n"+
-        "/bestwebsite - Ok this is EPIC\n" + 
+        "/showmestats -  I want to see my wasted posts in here couse i am a waste of sperm\n" +
+        "/randomwebsite - I am hella bored Owo\n" +
+        "/bestwebsite - Ok this is EPIC\n" +
         "/goodsongs - I wann listen to bullshit");
 });
 
