@@ -29,24 +29,25 @@ dbclient.connect(function (err, db) {
     console.log("database connected!");
 })
 
-function sendMorningWeather() {
+async function sendMorningWeather() {
+    var data = await weatherBalloon();
+
     database.collection(config.MongoDB.collRegisteredChats).find({}).toArray(function (err, result) {
         if (err) throw err;
 
         result.forEach((resultData) => {
-            bot.sendMessage(resultData.chatId, generateWeatherString());
+            bot.sendMessage(resultData.chatId, generateWeatherString(data));
 
-            setTimeout(registerNewTimeOut, 1000);
+            setTimeout(registerNewTimeOut, 10000);
         });
     });
 }
 
 function getTimeAtHour() {
     var t = new Date();
-
+    
     if (t.getHours() > 6)
         t.setDate(t.getDate() + 1)
-
     t.setHours(6);
     t.setMinutes(0);
     t.setSeconds(0);
@@ -286,6 +287,7 @@ function generateWeatherString(data) {
     for (var cnt = 0; cnt < 10; cnt++) {
         retString += getCorrespondingEmoticonToWeatherId(data.weather[0].id);
     }
+
 
     return retString
 }
