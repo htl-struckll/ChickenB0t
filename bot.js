@@ -278,8 +278,8 @@ function generateWeatherString(data) {
     }
 
 
-    retString += "\n\nOverall it will be " + generell + " the whole day.\n\nIn " + cityName + " there will be a minimum " + minTemp + "°C and at a maximum of " + maxTemp + "°C.\n\n" +
-        "With a wind speed of of " + windSpeed + "km/h coming from the " + windDir + " and a humidity of " + humidity +
+    retString += "\n\nOverall it will be " + generell + " the whole day.\n\nIn " + cityName + " there will be a minimum of " + minTemp + "°C and at a maximum of " + maxTemp + "°C.\n\n" +
+        "With a wind speed of " + windSpeed + "km/h coming from the " + windDir + " and a humidity of " + humidity +
         "% it will feel like " + feelLikeTmp + "°C.\n\n" +
         cloudyness + "% of the sky will be covered with clouds " + (visibility == undefined ? ".\n\n" : "and the visibility will be around " + visibility + "m.\n\n") +
         "🌅 The sunrise will be at " + sunrise + "\n🌇The sunset at " + sunset + " o'clock.\n\n";
