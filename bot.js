@@ -23,10 +23,13 @@ var database;
 
 
 
-dbclient.connect(function (err, db) {
+dbclient.connect(async function (err, db) {
     if (err) throw err;
-    database = db.db(config.MongoDB.dbName)
+    database = db.db(config.MongoDB.dbName);
     console.log("database connected!");
+
+    registerNewTimeOut();
+    console.log("registered automated weather!");
 })
 
 async function sendMorningWeather() {
@@ -35,18 +38,19 @@ async function sendMorningWeather() {
     database.collection(config.MongoDB.collRegisteredChats).find({}).toArray(function (err, result) {
         if (err) throw err;
 
-        result.forEach((resultData) => {
-            bot.sendMessage(resultData.chatId, generateWeatherString(data));
+        if (result != undefined)
+            result.forEach((resultData) => {
+                bot.sendMessage(resultData.chatId, generateWeatherString(data));
 
-            setTimeout(registerNewTimeOut, 10000);
-        });
+                setTimeout(registerNewTimeOut, 10000);
+            });
     });
 }
 
 function getTimeAtHour() {
     var t = new Date();
-    
-    if (t.getHours() > 6)
+
+    if (t.getHours() >= 6)
         t.setDate(t.getDate() + 1)
     t.setHours(6);
     t.setMinutes(0);
@@ -66,11 +70,9 @@ function registerNewTimeOut() {
     else
         offsetMillis = now - triggerTime;
 
-    console.log("registered");
     setTimeout(sendMorningWeather, offsetMillis);
 }
 
-registerNewTimeOut();
 
 bot.onText(/^\/register/, async function (msg) {
     chatId = msg.chat.id;
@@ -118,6 +120,7 @@ bot.onText(/^\/help/, (msg) => {
         "First of all. I monitor every movement you make. And you can belive me one thing: \nI - WILL - FIND - YOUR - REPOST\n\n" +
         "/weather - You alredy get your daily weather update you sick fuck.\n" +
         "/register - Register my slave ass to send you a daily weather update,\n" +
+        "/!register - Just take a wild guess\n" +
         "/showmestats -  I want to see my wasted posts in here couse i am a waste of sperm\n" +
         "/randomwebsite - I am hella bored Owo\n" +
         "/bestwebsite - Ok this is EPIC\n" +
@@ -137,17 +140,29 @@ bot.onText(/^\/showmestats/, async function (msg) {
 });
 
 
+bot.onText(/^\/!register/, async function (msg) {
+    chatid = msg.chat.id;
+    var test = await database.collection(config.MongoDB.collRegisteredChats).deleteOne({ "chatId": chatid });
+
+    if (test.deletedCount == 0)
+        bot.sendMessage(chatid, "Your stubid ass tried to delete a chat that isn´t even registered.... Pathetic");
+    else
+        bot.sendMessage(chatid, ":(");
+})
+
+
+
 bot.onText(/reddit\.com\/r\/\w+\/comments\/\w+(?:\/\w+\/\w+)?/, (msg, match) => {
     repostDetection(msg, match[0]);
-})
+});
 
 bot.onText(/9gag\.com\/gag\/\w+/, (msg, match) => {
     repostDetection(msg, match[0]);
-})
+});
 
 bot.onText(/vm.tiktok\.com\/\w+/, (msg, match) => {
     repostDetection(msg, match[0]);
-})
+});
 
 bot.on("polling_error", (err) => { console.log('error: '); console.log(err); });
 
@@ -231,7 +246,7 @@ function getCorrespondingEmoticonToWeatherId(weatherId) {
     else if (weatherId >= 600 && weatherId <= 699)
         return "🌨️";
     else if (weatherId == 800)
-        return "🌈";
+        return "☀️";
     else if (weatherId > 800 && weatherId <= 809)
         return "☁️";
     else return "";
@@ -266,17 +281,19 @@ function generateWeatherString(data) {
     var sunrise = getNormalTimeFromUnix(data.sys.sunrise), sunset = getNormalTimeFromUnix(data.sys.sunset);
 
     //TODO DELETE IF THIS IS NO ARRAY
-    data.weather.forEach((single) => {
+    /*data.weather.forEach((single) => {
         console.log("Weather array debug: ");
         console.log(single);
-    });
+    });*/
 
     var retString = "";
 
+    var appendEmojis = "";
     for (var cnt = 0; cnt < 10; cnt++) {
-        retString += getCorrespondingEmoticonToWeatherId(data.weather[0].id);
+        appendEmojis += getCorrespondingEmoticonToWeatherId(data.weather[0].id);
     }
 
+    retString = appendEmojis;
 
     retString += "\n\nOverall it will be " + generell + " the whole day.\n\nIn " + cityName + " there will be a minimum of " + minTemp + "°C and at a maximum of " + maxTemp + "°C.\n\n" +
         "With a wind speed of " + windSpeed + "km/h coming from the " + windDir + " and a humidity of " + humidity +
@@ -284,10 +301,7 @@ function generateWeatherString(data) {
         cloudyness + "% of the sky will be covered with clouds " + (visibility == undefined ? ".\n\n" : "and the visibility will be around " + visibility + "m.\n\n") +
         "🌅 The sunrise will be at " + sunrise + "\n🌇The sunset at " + sunset + " o'clock.\n\n";
 
-    for (var cnt = 0; cnt < 10; cnt++) {
-        retString += getCorrespondingEmoticonToWeatherId(data.weather[0].id);
-    }
-
+    retString += appendEmojis;
 
     return retString
 }
