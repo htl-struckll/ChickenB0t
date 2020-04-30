@@ -46,7 +46,7 @@ async function sendMorningWeather() {
             result.forEach((resultData) => {
                 bot.sendMessage(resultData.chatId, generateWeatherString(data));
 
-                checkTime(getTime);
+                checkTime(getTime());
             });
     });
 }
@@ -67,7 +67,7 @@ function registerNewTimeOut() {
     checkTime(time);
 }
 
-function checkTime() {
+function checkTime(time) {
     var now = new Date();
 
     if (now.getDate >= time[3] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
