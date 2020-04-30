@@ -38,11 +38,13 @@ async function sendMorningWeather() {
     database.collection(config.MongoDB.collRegisteredChats).find({}).toArray(function (err, result) {
         if (err) throw err;
 
+        console.log("sending weather");
+
         if (result != undefined)
             result.forEach((resultData) => {
                 bot.sendMessage(resultData.chatId, generateWeatherString(data));
 
-                setTimeout(registerNewTimeOut, 10000);
+                setInterval(registerNewTimeOut, 10000);
             });
     });
 }
@@ -59,18 +61,20 @@ function getTimeAtHour() {
     return t;
 }
 
+
 function registerNewTimeOut() {
-    var triggerTime = getTimeAtHour();
+    var triggerTime = getTimeAtHour().getTime();
     var now = new Date().getTime()
     var offsetMillis;
-
 
     if (triggerTime > now)
         offsetMillis = triggerTime - now;
     else
         offsetMillis = now - triggerTime;
 
-    setTimeout(sendMorningWeather, offsetMillis);
+    console.log("registered time at: " + offsetMillis);
+
+    setInterval(sendMorningWeather, offsetMillis);
 }
 
 
