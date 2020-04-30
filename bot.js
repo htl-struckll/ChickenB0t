@@ -1,4 +1,6 @@
 var config = require("./config.json");
+
+//Random websites
 var randomSites = ["http://heeeeeeeey.com/", "http://tinytuba.com/", "http://corndog.io/", "https://alwaysjudgeabookbyitscover.com", "http://thatsthefinger.com/", "http://cant-not-tweet-this.com/", "http://weirdorconfusing.com/", "http://eelslap.com/", "http://www.staggeringbeauty.com/", "http://burymewithmymoney.com/", "http://endless.horse/", "http://www.trypap.com/", "http://www.republiquedesmangues.fr/", "http://www.movenowthinklater.com/", "http://www.partridgegetslucky.com/", "http://www.rrrgggbbb.com/", "http://beesbeesbees.com/", "http://www.koalastothemax.com/", "http://www.everydayim.com/", "http://randomcolour.com/", "http://cat-bounce.com/", "http://chrismckenzie.com/", "http://hasthelargehadroncolliderdestroyedtheworldyet.com/", "http://ninjaflex.com/", "http://ihasabucket.com/", "http://corndogoncorndog.com/", "http://www.hackertyper.com/", "https://pointerpointer.com", "http://imaninja.com/", "http://www.ismycomputeron.com/", "http://www.nullingthevoid.com/", "http://www.muchbetterthanthis.com/", "http://www.yesnoif.com/", "http://potatoortomato.com/", "http://iamawesome.com/", "http://www.pleaselike.com/", "http://crouton.net/", "http://corgiorgy.com/", "http://www.wutdafuk.com/", "http://unicodesnowmanforyou.com/", "http://www.crossdivisions.com/", "http://tencents.info/", "http://www.patience-is-a-virtue.org/", "http://pixelsfighting.com/", "http://isitwhite.com/", "http://onemillionlols.com/", "http://www.omfgdogs.com/", "http://oct82.com/", "http://chihuahuaspin.com/", "http://www.blankwindows.com/", "http://dogs.are.the.most.moe/", "http://tunnelsnakes.com/", "http://www.trashloop.com/", "http://www.ascii-middle-finger.com/", "http://spaceis.cool/", "http://www.donothingfor2minutes.com/", "http://buildshruggie.com/", "http://buzzybuzz.biz/", "http://yeahlemons.com/", "http://burnie.com/", "http://wowenwilsonquiz.com", "https://thepigeon.org/", "http://notdayoftheweek.com/", "http://www.amialright.com/", "http://nooooooooooooooo.com/", "https://greatbignothing.com/"];
 
 //Weather
@@ -6,6 +8,7 @@ const fetch = require("node-fetch");
 const weatherToken = config.Openweathermap.token;
 const countryId = config.Openweathermap.countryId, state = config.Openweathermap.state, city = config.Openweathermap.city;
 const weatherURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "," + state + "," + countryId + "&appid=" + weatherToken;
+const hour = "06", minutes="00";
 
 //Telegram
 const TelegramBot = require('node-telegram-bot-api');
@@ -21,8 +24,6 @@ const url = config.MongoDB.connectionURL;
 const dbclient = new MongoClient(url);
 var database;
 
-
-
 dbclient.connect(async function (err, db) {
     if (err) throw err;
     database = db.db(config.MongoDB.dbName);
@@ -31,6 +32,7 @@ dbclient.connect(async function (err, db) {
     registerNewTimeOut();
     console.log("registered automated weather!");
 })
+
 
 async function sendMorningWeather() {
     var data = await weatherBalloon();
@@ -42,37 +44,36 @@ async function sendMorningWeather() {
             result.forEach((resultData) => {
                 bot.sendMessage(resultData.chatId, generateWeatherString(data));
 
-                setTimeout(registerNewTimeOut, 10000);
+                checkTime(getTime);
             });
     });
 }
 
-function getTimeAtHour() {
+function getTime() {
     var t = new Date();
 
     if (t.getHours() >= 6)
         t.setDate(t.getDate() + 1)
-    t.setHours(6);
-    t.setMinutes(0);
-    t.setSeconds(0);
 
-    return t;
+    return (hour + ":" + minutes + ":" + t.getDate()).split(":");
 }
 
 function registerNewTimeOut() {
-    var triggerTime = getTimeAtHour();
-    var now = new Date().getTime()
-    var offsetMillis;
+    var time = getTime();
 
-
-    if (triggerTime > now)
-        offsetMillis = triggerTime - now;
-    else
-        offsetMillis = now - triggerTime;
-
-    setTimeout(sendMorningWeather, offsetMillis);
+    checkTime(time);
 }
 
+function checkTime() {
+    var now = new Date();
+
+    if (now.getDate >= time[3] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
+        sendMorningWeather();
+    }
+    else {
+        setTimeout(checkTime, 1000 * 60);
+    }
+}
 
 bot.onText(/^\/register/, async function (msg) {
     chatId = msg.chat.id;
