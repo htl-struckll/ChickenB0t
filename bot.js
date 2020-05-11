@@ -1,4 +1,5 @@
 var config = require("./config.json");
+const fs = require('fs');
 
 //Random websites
 var randomSites = ["http://heeeeeeeey.com/", "http://tinytuba.com/", "http://corndog.io/", "https://alwaysjudgeabookbyitscover.com", "http://thatsthefinger.com/", "http://cant-not-tweet-this.com/", "http://weirdorconfusing.com/", "http://eelslap.com/", "http://www.staggeringbeauty.com/", "http://burymewithmymoney.com/", "http://endless.horse/", "http://www.trypap.com/", "http://www.republiquedesmangues.fr/", "http://www.movenowthinklater.com/", "http://www.partridgegetslucky.com/", "http://www.rrrgggbbb.com/", "http://beesbeesbees.com/", "http://www.koalastothemax.com/", "http://www.everydayim.com/", "http://randomcolour.com/", "http://cat-bounce.com/", "http://chrismckenzie.com/", "http://hasthelargehadroncolliderdestroyedtheworldyet.com/", "http://ninjaflex.com/", "http://ihasabucket.com/", "http://corndogoncorndog.com/", "http://www.hackertyper.com/", "https://pointerpointer.com", "http://imaninja.com/", "http://www.ismycomputeron.com/", "http://www.nullingthevoid.com/", "http://www.muchbetterthanthis.com/", "http://www.yesnoif.com/", "http://potatoortomato.com/", "http://iamawesome.com/", "http://www.pleaselike.com/", "http://crouton.net/", "http://corgiorgy.com/", "http://www.wutdafuk.com/", "http://unicodesnowmanforyou.com/", "http://www.crossdivisions.com/", "http://tencents.info/", "http://www.patience-is-a-virtue.org/", "http://pixelsfighting.com/", "http://isitwhite.com/", "http://onemillionlols.com/", "http://www.omfgdogs.com/", "http://oct82.com/", "http://chihuahuaspin.com/", "http://www.blankwindows.com/", "http://dogs.are.the.most.moe/", "http://tunnelsnakes.com/", "http://www.trashloop.com/", "http://www.ascii-middle-finger.com/", "http://spaceis.cool/", "http://www.donothingfor2minutes.com/", "http://buildshruggie.com/", "http://buzzybuzz.biz/", "http://yeahlemons.com/", "http://burnie.com/", "http://wowenwilsonquiz.com", "https://thepigeon.org/", "http://notdayoftheweek.com/", "http://www.amialright.com/", "http://nooooooooooooooo.com/", "https://greatbignothing.com/"];
@@ -8,7 +9,7 @@ const fetch = require("node-fetch");
 const weatherToken = config.Openweathermap.token;
 const countryId = config.Openweathermap.countryId, state = config.Openweathermap.state, city = config.Openweathermap.city;
 const weatherURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "," + state + "," + countryId + "&appid=" + weatherToken;
-const hour = "06", minutes="00";
+const hour = "06", minutes = "00";
 
 //Telegram
 const TelegramBot = require('node-telegram-bot-api');
@@ -51,6 +52,43 @@ async function sendMorningWeather() {
     });
 }
 
+function writeFile(data) {
+    if (fs.exists('log.txt')) {
+        fs.appendFile('log.txt', data, (err) => {
+            if (err) throw err;
+        })
+    } else {
+        fs.writeFile('log.txt', data, (err) => {
+            if (err) throw err;
+        });
+    }
+};
+
+/*
+function nextResetDate() {
+    let today = new Date();
+    let tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+}
+
+function getCounter() {
+    return nextResetDate() - new Date();
+}
+
+function checkNewDay() {
+    if (new Date().getDate() != currentDay) {
+        currentDay = new Date().getDate();
+        database.resetDailyCoins();
+    }
+}
+
+var currentDay = new Date().getDate();
+setInterval(checkNewDay, 10 * 1000);
+*/
+
+
+
 function getTime() {
     var t = new Date();
 
@@ -70,6 +108,7 @@ function registerNewTimeOut() {
 function checkTime(time) {
     var now = new Date();
 
+    writeFile(("now: " + now + " ,  time: " + time));
     if (now.getDate >= time[3] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
         sendMorningWeather();
     }
