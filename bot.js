@@ -70,7 +70,7 @@ function registerNewTimeOut() {
 function checkTime(time) {
     var now = new Date();
 
-    if (now.getDate >= time[3] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
+    if (now.getDate >= time[2] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
         sendMorningWeather();
     }
     else {
