@@ -193,26 +193,30 @@ bot.onText(/^\/spongeboyify/, async function (msg) {
 
     var replayMessage = msg.reply_to_message;
 
-    if (replayMessage === undefined) {
-        return; //If no msg was selected just return the shit outta there
-    } else {
-        var msg = replayMessage.text.split("");
-        if(msg === undefined)
-            return; //Alley oop
-        var sendMsg = "";
+    var msg;
+    if(replayMessage === undefined) return; //Alley oop
+    if (replayMessage.text != undefined)
+        msg = replayMessage.text;
+    else if (replayMessage.caption != undefined) {
+        msg = replayMessage.caption;
+    } else
+        return;//If no msg was selected just return the shit outta there
 
-        var cnt = 0;
+    var msg = msg.split("");
 
-        msg.forEach((char) => {
-            if (cnt % 2 == 0)
-                sendMsg += char.toUpperCase();
-            else
-                sendMsg += char.toLowerCase();
-            cnt++;
-        });
+    var sendMsg = "";
 
-        bot.sendMessage(chatId, sendMsg);
-    }
+    var cnt = 0;
+
+    msg.forEach((char) => {
+        if (cnt % 2 == 0)
+            sendMsg += char.toUpperCase();
+        else
+            sendMsg += char.toLowerCase();
+        cnt++;
+    });
+   
+    bot.sendPhoto(chatId,"pictures/spongebob.jpg",{caption: sendMsg});
 });
 
 
