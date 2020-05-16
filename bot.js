@@ -47,7 +47,7 @@ async function sendMorningWeather() {
             result.forEach((resultData) => {
                 bot.sendMessage(resultData.chatId, generateWeatherString(data));
 
-                checkTime(getTime());
+                registerNewTimeOut();
             });
     });
 }
@@ -76,7 +76,6 @@ function registerNewTimeOut() {
 
 function checkTime(time) {
     var now = new Date();
-
 
     writeFile(("now: " + now + " ,  time: " + time));
     if (now.getDate >= time[2] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
@@ -110,6 +109,12 @@ bot.onText(/^\/bestwebsite/, (msg) => {
     chatId = msg.chat.id;
 
     bot.sendMessage(chatId, "chickenag.ddns.net");
+});
+
+bot.onText(/^\/currenttime/, (msg) => {
+    chatId = msg.chat.id;
+
+    bot.sendPhoto(chatId,"pictures/isopod.jpg");
 });
 
 bot.onText(/^\/goodsongs/, (msg) => {
