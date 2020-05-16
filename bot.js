@@ -53,15 +53,9 @@ async function sendMorningWeather() {
 }
 
 function writeFile(data) {
-    if (fs.exists('log.txt')) {
-        fs.appendFile('log.txt', data, (err) => {
-            if (err) console.log(err);
-        });
-    } else {
-        fs.writeFile('log.txt', data, (err) => {
-            if (err) console.log(err);
-        });
-    }
+    fs.appendFile('log.txt', (data + "\n"), (err) => {
+        if (err) console.log(err);
+    });
 };
 
 /*
@@ -107,7 +101,7 @@ function registerNewTimeOut() {
 
 function checkTime(time) {
     var now = new Date();
-    
+
     writeFile(("now: " + now + " ,  time: " + time));
     if (now.getDate >= time[2] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
         sendMorningWeather();
@@ -193,6 +187,36 @@ bot.onText(/^\/!register/, async function (msg) {
         bot.sendMessage(chatid, ":(");
 })
 
+bot.onText(/^\/spongeboyify/, async function (msg) {
+    chatId = msg.chat.id;
+
+    var replayMessage = msg.reply_to_message;
+
+    var msg;
+    if(replayMessage === undefined) return; //Alley oop
+    if (replayMessage.text != undefined)
+        msg = replayMessage.text;
+    else if (replayMessage.caption != undefined) {
+        msg = replayMessage.caption;
+    } else
+        return;//If no msg was selected just return the shit outta there
+
+    var msg = msg.split("");
+
+    var sendMsg = "";
+
+    var cnt = 0;
+
+    msg.forEach((char) => {
+        if (cnt % 2 == 0)
+            sendMsg += char.toUpperCase();
+        else
+            sendMsg += char.toLowerCase();
+        cnt++;
+    });
+   
+    bot.sendPhoto(chatId,"pictures/spongebob.jpg",{caption: sendMsg});
+});
 
 
 bot.onText(/reddit\.com\/r\/\w+\/comments\/\w+(?:\/\w+\/\w+)?/, (msg, match) => {
@@ -235,7 +259,8 @@ async function sendRepostMessage(repost) {
     var originalMeme = await database.collection(config.MongoDB.collMemesSend).findOne({ meme: repost.meme, chatId: repost.chatId }, { sort: [["date", 1]] });
     date = new Date(originalMeme.date);
     bot.getChatMember(originalMeme.chatId, originalMeme.userId).then(function (user) {
-        bot.sendMessage(repost.chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨\nBuckle up Cowboy. This looks like a repost.\nThis meme was already posted by @"
+        bot.sendMessage(repost.chatId, "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨\nBuckle up Cowboy. This looks like a repost." +
+            "\nThis meme was already posted by @"
             + user.user.username + " on " + date.toDateString() + " at " + date.toLocaleTimeString('en-US') + "\n🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨", { 'reply_to_message_id': repost.messageId });
     });
 }
