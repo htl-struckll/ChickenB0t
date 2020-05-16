@@ -47,7 +47,7 @@ async function sendMorningWeather() {
             result.forEach((resultData) => {
                 bot.sendMessage(resultData.chatId, generateWeatherString(data));
 
-                checkTime(getTime());
+                registerNewTimeOut();
             });
     });
 }
@@ -63,31 +63,6 @@ function writeFile(data) {
         });
     }
 };
-
-/*
-function nextResetDate() {
-    let today = new Date();
-    let tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
-}
-
-function getCounter() {
-    return nextResetDate() - new Date();
-}
-
-function checkNewDay() {
-    if (new Date().getDate() != currentDay) {
-        currentDay = new Date().getDate();
-        database.resetDailyCoins();
-    }
-}
-
-var currentDay = new Date().getDate();
-setInterval(checkNewDay, 10 * 1000);
-*/
-
-
 
 function getTime() {
     var t = new Date();
@@ -108,9 +83,14 @@ function registerNewTimeOut() {
 function checkTime(time) {
     var now = new Date();
 
+<<<<<<< Updated upstream
     
+=======
+    console.log(time);
+
+>>>>>>> Stashed changes
     writeFile(("now: " + now + " ,  time: " + time));
-    if (now.getDate >= time[2] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
+    if (now.getDate === time[2] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
         sendMorningWeather();
     }
     else {
@@ -168,7 +148,8 @@ bot.onText(/^\/help/, (msg) => {
         "/showmestats -  I want to see my wasted posts in here couse i am a waste of sperm\n" +
         "/randomwebsite - I am hella bored Owo\n" +
         "/bestwebsite - Ok this is EPIC\n" +
-        "/goodsongs - I wann listen to bullshit");
+        "/goodsongs - I wann listen to bullshit\n"+
+        "/spongebobify - You know the meme do you you?");
 });
 
 bot.onText(/^\/showmestats/, async function (msg) {
