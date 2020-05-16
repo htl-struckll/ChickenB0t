@@ -58,31 +58,6 @@ function writeFile(data) {
     });
 };
 
-/*
-function nextResetDate() {
-    let today = new Date();
-    let tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
-}
-
-function getCounter() {
-    return nextResetDate() - new Date();
-}
-
-function checkNewDay() {
-    if (new Date().getDate() != currentDay) {
-        currentDay = new Date().getDate();
-        database.resetDailyCoins();
-    }
-}
-
-var currentDay = new Date().getDate();
-setInterval(checkNewDay, 10 * 1000);
-*/
-
-
-
 function getTime() {
     var t = new Date();
 
