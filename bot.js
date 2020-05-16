@@ -55,11 +55,11 @@ async function sendMorningWeather() {
 function writeFile(data) {
     if (fs.exists('log.txt')) {
         fs.appendFile('log.txt', data, (err) => {
-            if (err) throw err;
-        })
+            if (err) console.log(err);
+        });
     } else {
         fs.writeFile('log.txt', data, (err) => {
-            if (err) throw err;
+            if (err) console.log(err);
         });
     }
 };
@@ -107,7 +107,6 @@ function registerNewTimeOut() {
 
 function checkTime(time) {
     var now = new Date();
-
     
     writeFile(("now: " + now + " ,  time: " + time));
     if (now.getDate >= time[2] && now.getHours() >= time[0] && now.getMinutes() >= time[1]) {
